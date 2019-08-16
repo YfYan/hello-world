@@ -26,7 +26,7 @@
 
 
 
-selenium是一个web测试库，可以带动一个真实的Chrome，为网页中的JavaScript提供运行环境。这样以来，通过一个webdriver驱动一个Chome加载页面，这样之后通过page_source得到的页面html就是渲染过的了。
+selenium是一个web测试库，可以带动一个真实的Chrome，为网页中的JavaScript提供运行环境。这样以来，通过一个webdriver驱动一个Chome加载页面，这样之后通过page_source得到的页面html就是渲染过的了。原则上说，只要不怕慢，扔给一个url，都是完全加载出来的。
 
 
 
@@ -193,7 +193,7 @@ for count in range(scroll_num): #scroll_num相当于滚动次数
      params = (('limit', '7'),
                ('desktop', 'True'),
                ('after_id', after_id)) #after_id 在第一次循环之后才有
-  response=requests.get('https://www.zhihu.com/api/v4/members/'+follower+'/activities', headers=headers, params=params) #xhr请求
+  response=requests.get('https://www.zhihu.com/api/v4/members/'+follower+'/activities', headers=headers, params=params) #xhr请求 知乎api
   jd=response.json()
   *********** #其他处理
   try:
@@ -201,4 +201,26 @@ for count in range(scroll_num): #scroll_num相当于滚动次数
   except:
     break #如果不存在after_id， 说明动态还没滚30下就没了 退出循环
 ```
+
+最让我疑惑的是第一次after_id，它没有从再前一个获得了，我尝试了配置[mitmproxy](https://mitmproxy.org/)，用它监听了Chrome，再打开知乎，但似乎还是没有找到。之后实验了一下，直接在params里不放after_id，刚好就是最开始的7条内容。另外记录一下如何在mac命令行中打开一个无视证书，并设置代理的Chrome，这个找了一下午才找到:
+
+```bash
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --proxy-server='127.0.0.1:8080' --ignore-certificate-errors &> /dev/null &
+```
+
+之后只需要输入命名mitmweb，并在另一个浏览器（如safari）打开127.0.0.1:8080，即可监听Chrome中的内容。配合其他脚本，可以直接获取xhr，不需要每次对xhr先copy as cURL，在用在线工具转化为python的requests。虽然这次它似乎没有发挥功能，但如果要抓手机的包，这会是非常好用的。
+
+
+
+回到爬虫，不需要用selenium滚动，我把scroll_time调成30次，仍然要比原来快，而且获取的信息多得多。对原本关注者url的获取也采取了类似的方法，采用了知乎的API，这样整个流程除了验证码输入，摆脱了selenium，速度大大提升。
+
+
+
+## 流程重构
+
+在version 1.x中，都是先获取关注者的主页url并存在本地，之后直接获取关注者的动态和相关动态的内容，这样做有两个缺点，一是第二步比较冗长，如果哪里出错了再调比较麻烦，二是很多问题都是重复的，这样爬取的重复率很高。
+
+在version 2.0中，第一步仍然保持不变，第二步建立三个字典：用户-问题列表，用户-专栏列表，用户-关注话题列表，py可以把字典变成字符串存在本地，读取的时候eval一下就变回字典了。第三步把所有的问题放在一个，去重，对去重后的结果在爬取，可以快很多，在python中，只需要一行代码即可 ` questions = list(set(questions))` 。对专栏处理同理。
+
+在进一步做用户画像的时候，由于字典是hash的，其实把用户和相关信息对应是O(1)的复杂度。
 
