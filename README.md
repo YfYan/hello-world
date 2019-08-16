@@ -68,9 +68,9 @@ for count in range(scroll_time): #scroll_time是预设的滚动次数
 
 上图是一个问题的图片，问题信息分为三部分，在上图中从上到下分为话题标签、标题、内容。很不幸，问题页面也是动态加载的，在Chrome中检查这三个部分，均不能在源代码中找到。如果这个也用selenium去做加载页面，实在是太慢了。观察页面的源代码，话题标签和标题在一个meta中可以找到，而较为完整的内容可以在源代码中的JavaScript中找到，用正则表达式可找。
 
-![pic5](/Users/xijinping/Downloads/gitwork/YfYan.github.io/images/pic5.png)
+![pic5](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic5.png)
 
-![pic6](/Users/xijinping/Downloads/gitwork/YfYan.github.io/images/pic6.png)
+![pic6](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic6.png)
 
 爬取问题内容的正则表达式如下，目前使用还可以，但以后万一js改了需要进一步维护
 
@@ -127,19 +127,19 @@ import asyncio
 
 <center>
 <figure class="third">
-  <img src = "/Users/xijinping/Downloads/crawl/captcha/captcha39.png">
-  <img src = "/Users/xijinping/Downloads/crawl/captcha/captcha40.png">  
-  <img src = "/Users/xijinping/Downloads/crawl/captcha/captcha41.png">
+  <img src = "http://github.com/YfYan/YfYan.github.io/raw/master/images/captcha39.png">
+  <img src = "http://github.com/YfYan/YfYan.github.io/raw/master/images/captcha40.png">  
+  <img src = "http://github.com/YfYan/YfYan.github.io/raw/master/images/captcha41.png">
 </figure>
 </center>
 
-一开始的思路当然是看看有没有现成的库去处理，试用了采用OSR方法的pytesseract库，结果惨不忍睹，毕竟OSR是为了处理规则的图像中文字。那就只能采用自己标注数据+卷积神经网络训练的方法了。关于CNN，安利一篇自家学校的[CNN文章](/Users/xijinping/Downloads/gitwork/YfYan.github.io/CNN.pdf)，零基础也可以看个大概，了解大致原理有利于调参。
+一开始的思路当然是看看有没有现成的库去处理，试用了采用OSR方法的pytesseract库，结果惨不忍睹，毕竟OSR是为了处理规则的图像中文字。那就只能采用自己标注数据+卷积神经网络训练的方法了。关于CNN，安利一篇自家学校的[CNN文章](http://github.com/YfYan/YfYan.github.io/raw/master/CNN.pdf)，零基础也可以看个大概，了解大致原理有利于调参。
 
 首先要决定的问题上是验证码是整体预测还是切割后单个预测。简单的查阅要获得足够高的准确率，整体预测需要2万左右的训练集，事实上，1000个训练集我都标了一下午，我觉得标2万个不太现实，因此采取了分割后单个字符预测的方法。切割程序为crop_captcha.py
 
 虽然验证码的图片都是60行150列的图片，但实际的验证码大约都是60行120列，如果直接平均分割成四份非常不准确。这里采用的策略是首先将图片灰度化，只留一个颜色通道，从左到右扫描，遇到第一个黑像素点设为起点，再从右到左扫描，遇到第一个黑像素点设为终点。把起点到终点区域的图像缩放成120列，之后再平均分成四份，目测结果还行，部分切割结果如下：
 
-![pic7](/Users/xijinping/Downloads/gitwork/YfYan.github.io/images/pic7.png)
+![pic7](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic7.png)
 
 之后的预测目标为，输入一个60 * 30 * 1的矩阵，经过神经网络和softmax层后返回一个one-hot label对应一个字符。在python中有很多机器学习的库，如果要快速实现想法的话，首推[Keras](https://keras.io/)，它把tensorflow作为backend，很多细节都隐藏了，除了第一层要指定数据维数外，其他层只需要指定每层的类型和activation函数即可，Keras会自动推测每层的维数。每次训练完成后，可以将整个网络存在本地，最后选择一个测试集效果最好的用于预测即可。本人最后采用的网络结构为：
 
