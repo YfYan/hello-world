@@ -42,7 +42,7 @@ driver = webdriver.Chrome(options=option)
 
 另外为提高速度，加载完一个页面，不要将webdriver关闭，因为每次打开Chrome都需要花费额外的时间，不如等所有的页面都搞定了再关掉webdriver。webdriver本身是可以通过DOM来定位xpath，但似乎这样会耗费更多的资源，所以本人还是用BeautifulSoup做正则表达。
 
-## 关注者的动态获取
+## 关注者动态的获取
 
 知乎用户的动态是可以通过鼠标往下拖再加载的，显然也是动态加载的，这里selenium可以模拟鼠标滚轮往下滑，滑一次可以多下载7个内容，同时要暂停一小段时间，否则会来不及加载。另外，图片信息是没有用的，不妨禁用图片加载，实现如下：
 
@@ -64,7 +64,7 @@ for count in range(scroll_time): #scroll_time是预设的滚动次数
 
 ## 问题信息的获取
 
-
+![pic2](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic2.png)
 
 
 
