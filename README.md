@@ -224,3 +224,65 @@ for count in range(scroll_num): #scroll_num相当于滚动次数
 
 在进一步做用户画像的时候，由于字典是hash的，其实把用户和相关信息对应是O(1)的复杂度。
 
+
+
+# 用户画像
+
+获取用户关注者的各种信息后，可以通过文本挖掘的方法对用户进行分析。
+
+在画像方法，也是试了很多的方法，最后能work的是tf-idf向量化，再做Kmeans聚类，获得关键词，做词云。
+
+
+
+## tf-idf 向量化
+
+先把单个关注者所有信息组成一个字符串，也就一篇article，有重复也加进去，这样就自带权重了。把所有的article放进一个列表，组成一个corpus，之后用sklearn的包tf-idf向量化
+
+```python
+from sklearn.feature_extraction.text import TfidfVectorizer
+vectorizer = TfidfVectorizer(stop_words=stopwords, tokenizer=tokenize) #stopwords是预先读取的挺次列表，tokenize是基于jieba.lcut自定义的分词韩函数
+X = vectorizer.fit_transform(content) #content即为corpus X是向量化的结果
+```
+
+X是一个numpy的稀疏矩阵，行数为article的数量，列数是corpus中的词总数，第i行第j列的值即为第i篇文章，第j个单词在该文章中的tf-idf，j为单词在整个词库中的下标，不是在article i中的下标。
+
+同时试过另一种组建corpus的方式，把一个问题的所有信息或一个专栏作为一个article，效果似乎也还好。
+
+
+
+## Kmeans 聚类
+
+向量化之后就可以用各种数值方法了，聚类方法里试了下最好用的似乎是Kmeans。先把聚类的数量设为10到30的区间，在根据肘部原则选择了目测比较合适的15类
+
+```python
+from sklearn.cluster import KMeans
+centers = range(10,30)
+models=[KMeans(n_clusrers=i,verbose=True) for i in centers]
+score=[models[i].fit(X).score(X) for i in centers]
+```
+
+得到的聚类top词汇如下：
+
+![pic8](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic8.png)
+
+之后做词云不知道怎么处理不同聚类top词汇的权重，可视化也就大致显示一下，就不放了。
+
+
+
+## 填不完坑
+
+感觉填不了坑挺多的
+
+## 问题标签分类
+
+如果能将问题的标签先做一个自动分类，在统计各类下问题的比重，显然是一个对用户画像的好办法。初步的想法是如果两个标签在同一个问题下出现，说明它们的距离比较近，如果两个标签要通过中间标签相连，则它们的距离较远。依此规则就可以构造出一个图，也就是affinity matrix。之后通过affinity propagation就能自动完成聚类。但是具体的距离构造怎么都想不出来一个合适的方法，也就作罢了。
+
+另外numpy的内置函数计算是真的快，如果要自己循环做点什么实在是太慢了，就算要循环，也应该先转换为稀疏矩阵再循环。
+
+
+
+## 测地线距离
+
+在KMeans中，使用的是欧式距离，我想在再一次尝试上个坑中的思想，想采用测地线距离。
+
+![pic9](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic9.png)
