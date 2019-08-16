@@ -18,7 +18,7 @@
 
 # version 1.0
 
-##用户的关注者获取
+## 用户的关注者获取
 
 ![pic1](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic1.png)
 
@@ -63,6 +63,8 @@ for count in range(scroll_time): #scroll_time是预设的滚动次数
 这样就可以获得用户的问题、专栏等的url。
 
 ## 问题信息的获取
+
+
 
 
 
