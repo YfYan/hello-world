@@ -8,7 +8,7 @@
 
 ### 用户的关注者获取
 
-![pic1]http://github.com/YfYan/YfYan.github.io/raw/master/images/pic1.png)
+![pic1](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic1.png)
 
 作为一个只初步了解爬虫的新手，一开始的基本思路自然是requests+BeautifulSoup。观察用户的关注者页面，翻页时是在url后加 ?page=X （X为页面），每一页有20个关注者，X的最大值根据关注者数量获得。然而真正跑的跑的时候，BeauifulSoup通过正则表达只能在每个页面只能找出三个关注者，因为知乎的页面大多数都是异步加载的，右击页面的源代码里信息的很少的，页面的大多数信息都是JavaScript异步渲染的。念及我两天速成的js语法，我头大了。幸好找了半天，配置好了我实习阶段的第一个神器——selenium。 
 
