@@ -286,3 +286,9 @@ score=[models[i].fit(X).score(X) for i in centers]
 在KMeans中，使用的是欧式距离，我想在再一次尝试上个坑中的思想，想采用测地线距离。
 
 ![pic9](http://github.com/YfYan/YfYan.github.io/raw/master/images/pic9.png)
+
+在一个典型的面包卷中，左图是采用欧式距离的聚类结果，右图是采用测地线距离的聚类结果。
+
+可以用floyd最短路算法近似测地线距离，但这是O(n^3)的时间复杂度，1万多个标签，稍微跑了一下，实在太慢了。
+
+另外，在sklearn里的AgglomerativeClustering中可以设置连通性，达到相似的结果，但不接受稀疏矩阵X，变成普通矩阵后跑了一小时也没结果，也只能作罢。
