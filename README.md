@@ -14,7 +14,7 @@
 
 专栏的url为：https://zhuanlan.zhihu.com/ + 专栏id
 
-因此，爬取的一个关键是获取这些token和id，之后就是通过获得的url爬取信息。
+因此，爬取的一个关键是获取这些token和id，之后就是通过获得的url爬取信息。另外对知乎的爬虫一定要有headers，否则会404。
 
 # version 1.0
 
@@ -178,4 +178,27 @@ class Captcha_pred(object):#其他细节都忽略了 只写了多线程的坑
 
 # version 2.0
 
-在1.2版本后
+在1.2版本后，在获取关注者动态的过程中，受制于selenium的加载页面速度，速度仍有大大提升的空间。老板教我一个好方法看network里的XHR和一个好用的工具mitm。
+
+在滑动鼠标滚轮的过程中，其实是发出了一个XMLHttpRequest，得到的response是一个json格式的文档，再通过js加载到页面上，事实上json文档里已经有了所有需要的信息。同时response里还包含了下一次after_id，这个after_id决定了下一次的内容，实验后也发现after_id作为一个request的params，决定了该次请求返回的内容。
+
+另外，这些XHR请求的url都是知乎的api，其他地方也都可以用，[整理点这里](https://www.jianshu.com/p/86139ab70b86) ，由此获得结构化数据比用正则等方法解析网页快的多。
+
+```python
+for count in range(scroll_num): #scroll_num相当于滚动次数
+  if count == 0:
+     params = (('limit', '7'),
+               ('desktop', 'True'))
+  else:
+     params = (('limit', '7'),
+               ('desktop', 'True'),
+               ('after_id', after_id)) #after_id 在第一次循环之后才有
+  response=requests.get('https://www.zhihu.com/api/v4/members/'+follower+'/activities', headers=headers, params=params) #xhr请求
+  jd=response.json()
+  *********** #其他处理
+  try:
+    after_id=jd['paging']['next'].split('&')[2].split('=')[1] #获取after_id
+  except:
+    break #如果不存在after_id， 说明动态还没滚30下就没了 退出循环
+```
+
